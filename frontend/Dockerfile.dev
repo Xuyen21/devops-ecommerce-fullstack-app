@@ -1,0 +1,21 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Make /app writable by the non-root user, then drop privileges
+# so npm ci and later files are owned by "node" from the start
+
+# chown <user:group>
+RUN chown node:node /app
+# set user for all subsequent instructions
+USER node
+
+COPY --chown=node:node package*.json ./
+
+RUN npm ci
+
+COPY --chown=node:node . .
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
