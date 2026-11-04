@@ -13,8 +13,11 @@ export default defineConfig({
   server: {
     port: 5173, // frontend dev server
     proxy: {
+      // Any request starting with /api will be forwarded to your backend
       '/api': {
-        target: 'http://127.0.0.1:8000', // Django backend
+        // Django backend; override with VITE_PROXY_TARGET (e.g. http://backend:8000 in Docker)
+        // target: process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:8000',
+        target: process.env.VITE_PROXY_TARGET || 'http://host.docker.internal:8000',
         changeOrigin: true,
         secure: false,
       },
