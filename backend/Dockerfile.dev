@@ -1,0 +1,32 @@
+# Development Dockerfile for Django Backend
+FROM python:3.11-slim
+
+# Prevent Python from writing .pyc files and buffer stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# curl is used for healthchecks. No compiler/libpq needed: psycopg2-binary ships its own libpq.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user that owns /app
+RUN useradd -m -u 1000 appuser \
+    && chown appuser:appuser /app
+
+# Install Python dependencies first so this layer is cached until requirements change
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY --chown=appuser:appuser . .
+
+USER appuser
+
+EXPOSE 8000
+
+# Run Django development server
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
