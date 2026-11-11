@@ -7,20 +7,26 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Change port if needed
+// Where the dev server forwards /api and /media. Set by docker-compose
+// (VITE_PROXY_TARGET=http://backend:8000); there is intentionally no fallback.
+const PROXY_TARGET = process.env.VITE_PROXY_TARGET;
+if (!PROXY_TARGET) {
+  console.warn("[vite] VITE_PROXY_TARGET is not set: /api and /media requests will not be proxied");
+}
+
+// keep the browser's Host (localhost:5173) so Django builds image URLs the browser can reach,
+// instead of the Docker-internal http://backend:8000
+const proxyRule = PROXY_TARGET
+  ? { target: PROXY_TARGET, changeOrigin: false, secure: false }
+  : undefined;
+
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173, // frontend dev server
-    proxy: {
-      // Any request starting with /api will be forwarded to your backend
-      '/api': {
-        // Django backend; override with VITE_PROXY_TARGET (e.g. http://backend:8000 in Docker)
-        // target: process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:8000',
-        target: process.env.VITE_PROXY_TARGET || 'http://host.docker.internal:8000',
-        changeOrigin: true,
-        secure: false,
-      },
+    proxy: proxyRule && {
+      '/api': proxyRule,   // API calls -> Django
+      '/media': proxyRule, // uploaded images (dev: served by Django from backend/media)
     },
   },
   resolve: {
