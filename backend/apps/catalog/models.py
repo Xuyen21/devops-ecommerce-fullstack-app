@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from cloudinary_storage.storage import MediaCloudinaryStorage
 
 def validate_image_size(image):
     max_size_mb = 2
@@ -13,7 +12,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(storage=MediaCloudinaryStorage(),upload_to='products/', blank=True, null=True,default='products/default.png')  # ✅ NEW FIELD
+    image = models.ImageField(upload_to='products/', blank=True, null=True,default='products/default.png')  # ✅ NEW FIELD
 
     class Meta:
         ordering = ['name']  # default sort by name

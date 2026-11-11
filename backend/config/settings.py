@@ -390,7 +390,21 @@ CLOUDINARY_STORAGE = {
     'STATICFILES_MANIFEST_ROOT': 'staticfiles',
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# Media storage: Cloudinary when its keys are configured, otherwise local disk
+# (dev). Django 5.1+ ignores DEFAULT_FILE_STORAGE, so STORAGES is used instead.
+MEDIA_URL = "/media/"
+# BASE_DIR is redefined higher up the file (points to "/" in the container), so anchor to backend/ explicitly
+MEDIA_ROOT = Path(__file__).resolve().parent.parent / "media"
+
+if os.getenv("CLOUDINARY_CLOUD_NAME"):
+    _default_storage = "cloudinary_storage.storage.MediaCloudinaryStorage"
+else:
+    _default_storage = "django.core.files.storage.FileSystemStorage"
+
+STORAGES = {
+    "default": {"BACKEND": _default_storage},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
 
 
 

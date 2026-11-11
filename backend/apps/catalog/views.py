@@ -87,41 +87,8 @@ class ProductViewSet(RequestContextMixin, viewsets.ModelViewSet):
         return super().retrieve(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        """Called when an admin creates a new product — with deep Cloudinary diagnostics."""
-        import os
-        import cloudinary
-        from django.conf import settings
-        logger = logging.getLogger("api")
-
-        # 🧩 Diagnostic: storage + settings info
-        logger.info(f"[CloudinaryCheck] DEFAULT_FILE_STORAGE = {settings.DEFAULT_FILE_STORAGE}")
-        logger.info(f"[CloudinaryCheck] Media root = {getattr(settings, 'MEDIA_ROOT', None)}")
-        logger.info(f"[CloudinaryCheck] Cloudinary name = {os.getenv('CLOUDINARY_CLOUD_NAME')}")
-        logger.info(f"[CloudinaryCheck] Cloudinary configured? {bool(cloudinary.config().cloud_name)}")
-
-        # 🧩 Diagnostic: serializer field info
-        image_field = serializer.validated_data.get("image")
-        if image_field:
-            logger.info(f"[Pre-Save] Image field type = {type(image_field)}")
-            logger.info(f"[Pre-Save] Image field name = {getattr(image_field, 'name', None)}")
-            try:
-                storage_used = getattr(image_field, 'storage', None)
-                logger.info(f"[Pre-Save] Image field storage = {storage_used}")
-            except Exception as e:
-                logger.warning(f"[Pre-Save] Could not inspect image.storage: {e}")
-        else:
-            logger.warning("[Pre-Save] No image provided in validated_data")
-
-        # 🧩 Save product to DB (triggers actual Cloudinary upload)
+        """Called when an admin creates a new product."""
         product = serializer.save()
-
-        # 🧩 Post-save diagnostics
-        try:
-            logger.info(f"[Post-Save] Product.image.url = {getattr(product.image, 'url', None)}")
-            logger.info(f"[Post-Save] Product.image.name = {getattr(product.image, 'name', None)}")
-        except Exception as e:
-            logger.warning(f"[Post-Save] Could not log image URL: {e}")
-
         logger.info(f"[ProductViewSet:create] Product ID={product.id} created by {self.request.user}")
         return product
 

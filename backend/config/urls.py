@@ -50,5 +50,6 @@ urlpatterns = [
 ]
 
 # we are using to Cloudinary, Django no longer needs to manage /media locally.so it commented
-# urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve uploaded media from local disk in dev (no-op when DEBUG is False)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
