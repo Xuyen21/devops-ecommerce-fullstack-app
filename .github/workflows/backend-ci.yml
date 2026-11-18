@@ -35,6 +35,9 @@ jobs:
       ENV: DEV
       DEBUG: "False"
       LOGGING_ENABLED: "false"
+      # settings.py splits these on "," so an unset value becomes [''] and fails `manage.py check`
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+      CSRF_TRUSTED_ORIGINS: http://localhost:5173
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
